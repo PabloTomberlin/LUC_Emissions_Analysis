@@ -1,5 +1,4 @@
 #Pablo Tomberlin, MSE
-setwd("~/LUC_Emissions")
 data <- read.csv("selected_GCP.csv")
 observations <- read.csv("GML_observations.csv")
 library(tidyverse)
@@ -90,10 +89,15 @@ out_20[["scenario"]] <- "2020 Data"
 out_23[["scenario"]] <- "2023 Data"
 out_24[["scenario"]] <- "2024 Data"
 
-#out_base <- observations %>% ggplot(aes(year, mean)) + geom_line()
 comparison_plot <- rbind(out_default, out_07, out_10, out_15, out_20, out_23, out_24)
-ggplot(data = comparison_plot, aes(year, value, color = scenario,
-                                   linetype = scenario)) + 
-  geom_line() + ggplot(data = observations, aes(year, mean)) +
-  facet_wrap("variable", scales = "free") + ggtitle("LUC Emissions to CO2 Concentrations")
-ggsave("LUC_emissions_fig.png", width = 8, height = 5)
+scenario_plot <- ggplot() + 
+  geom_line(data = comparison_plot,
+            aes(year, value, color = scenario,
+                linetype = scenario)) +
+  geom_line(data = observations,
+            aes(year, mean),
+            color = "black") +
+  facet_wrap("variable", scales = "free") +
+  ggtitle("LUC Emissions to CO2 Concentrations")
+print(scenario_plot)
+ggsave("LUC_emissions_fig.png", scenario_plot, width = 8, height = 5)
