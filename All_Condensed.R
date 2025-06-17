@@ -1,0 +1,79 @@
+#Pablo Tomberlin, Condensed script for all years
+setwd("~/LUC_Emissions")
+data <- read.csv("selected_GCP.csv")
+library(tidyverse)
+
+#basic run
+library(hector)
+ini_file <- system.file("input/hector_ssp245.ini", package = "hector")
+core <- newcore(ini_file)
+run(core)
+out_default <- fetchvars(core, 1900:2025, vars = c(LUC_EMISSIONS(),
+                                                                CONCENTRATIONS_CO2()))
+
+#2007 run, try setting to 2024 or setting to 2007, also with fetch
+isolated_data <- data %>% filter(GCP == 2007)
+setvar(core, 1959:2006, LUC_EMISSIONS(), isolated_data$value,
+       getunits(LUC_EMISSIONS()))
+reset(core)
+run(core)
+out_07 <- fetchvars(core, 1959:2006, vars = c(LUC_EMISSIONS(),
+                                                       CONCENTRATIONS_CO2()))
+#2010 run, remember to change 5 items
+isolated_data_2 <- data %>% filter(GCP == 2010)
+setvar(core, 1959:2010, LUC_EMISSIONS(), isolated_data_2$value,
+       getunits(LUC_EMISSIONS()))
+reset(core)
+run(core)
+out_10 <- fetchvars(core, 1959:2010, vars = c(LUC_EMISSIONS(),
+                                              CONCENTRATIONS_CO2()))
+
+#2015 run, remember to change 5 items
+isolated_data_3 <- data %>% filter(GCP == 2015)
+setvar(core, 1850:2010, LUC_EMISSIONS(), isolated_data_3$value,
+       getunits(LUC_EMISSIONS()))
+reset(core)
+run(core)
+out_15 <- fetchvars(core, 1850:2010, vars = c(LUC_EMISSIONS(),
+                                              CONCENTRATIONS_CO2()))
+
+#2020 run, remember to change 5 items
+isolated_data_4 <- data %>% filter(GCP == 2020)
+setvar(core, 1850:2020, LUC_EMISSIONS(), isolated_data_4$value,
+       getunits(LUC_EMISSIONS()))
+reset(core)
+run(core)
+out_20 <- fetchvars(core, 1850:2020, vars = c(LUC_EMISSIONS(),
+                                              CONCENTRATIONS_CO2()))
+
+#2023 run, remember to change 5 items
+isolated_data_5 <- data %>% filter(GCP == 2023)
+setvar(core, 1850:2022, LUC_EMISSIONS(), isolated_data_5$value,
+       getunits(LUC_EMISSIONS()))
+reset(core)
+run(core)
+out_23 <- fetchvars(core, 1850:2022, vars = c(LUC_EMISSIONS(),
+                                              CONCENTRATIONS_CO2()))
+
+#2024 run, remember to change 5 items
+isolated_data_6 <- data %>% filter(GCP == 2024)
+setvar(core, 1850:2023, LUC_EMISSIONS(), isolated_data_6$value,
+       getunits(LUC_EMISSIONS()))
+reset(core)
+run(core)
+out_24 <- fetchvars(core, 1850:2023, vars = c(LUC_EMISSIONS(),
+                                              CONCENTRATIONS_CO2()))
+#plot
+out_default[["scenario"]] <- "Hector Default"
+out_07[["scenario"]] <- "2007 Data"
+out_10[["scenario"]] <- "2010 Data"
+out_15[["scenario"]] <- "2015 Data"
+out_20[["scenario"]] <- "2020 Data"
+out_23[["scenario"]] <- "2023 Data"
+out_24[["scenario"]] <- "2024 Data"
+comparison_plot <- rbind(out_default, out_07, out_10, out_15, out_20, out_23, out_24)
+ggplot(data = comparison_plot, aes(year, value, color = scenario,
+                                   linetype = scenario)) + 
+  geom_line() + 
+  facet_wrap("variable", scales = "free") + ggtitle("LUC Emissions")
+ggsave("LUC_emissions_fig.png", width = 8, height = 5)
