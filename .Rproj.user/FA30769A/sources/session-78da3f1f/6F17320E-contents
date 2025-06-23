@@ -82,6 +82,9 @@ ggplot() +
   facet_wrap("variable", scales = "free") +
   ggtitle("LUC Emissions") +
   xlab("Year") +
+  #theme(axis.title.x = element_text("Year", face = "bold") +
   ylab("Value (Pg C/yr)") +
-  labs("GCP Release")
-ggsave("LUC_emissions_fig.png", width = 8, height = 5)
+  labs("GCP Release") +
+  theme(text = element_text(size = 12, family = "mono", face = "bold"))
+#ggsave("LUC_emissions_fig.png", width = 8, height = 5)
+
