@@ -78,7 +78,7 @@ run(core)
 out_24 <- fetchvars(core, 1850:2023, vars = CONCENTRATIONS_CO2())
 error <- merge(out_24, observations, by = "year")
 error
-rmse(error$value, error$mean)#11.306
+rmse(error$value, error$mean)#11.306 Pg C/yr
 
 #plot
 out_default[["scenario"]] <- "Hector Default"
