@@ -3,6 +3,7 @@ data <- read.csv("selected_GCP.csv")
 observations <- read.csv("GML_observations.csv")
 library(tidyverse)
 library(Metrics)
+data <- data %>% filter(!(is.na(year)))
 
 #basic run
 library(hector)
@@ -27,11 +28,11 @@ rmse(error$value, error$mean)#1.356
 
 #2010 run, remember to change 5 items
 isolated_data_2 <- data %>% filter(GCP == 2010)
-setvar(core, 1959:2010, LUC_EMISSIONS(), isolated_data_2$value,
+setvar(core, 1959:2009, LUC_EMISSIONS(), isolated_data_2$value,
        getunits(LUC_EMISSIONS()))
 reset(core)
 run(core)
-out_10 <- fetchvars(core, 1959:2010, vars = CONCENTRATIONS_CO2())
+out_10 <- fetchvars(core, 1959:2009, vars = CONCENTRATIONS_CO2())
 error <- merge(out_10, observations, by = "year")
 error
 rmse(error$value, error$mean)#1.123
@@ -49,11 +50,11 @@ rmse(error$value, error$mean)#1.056
 
 #2020 run, remember to change 5 items
 isolated_data_4 <- data %>% filter(GCP == 2020)
-setvar(core, 1850:2020, LUC_EMISSIONS(), isolated_data_4$value,
+setvar(core, 1850:2019, LUC_EMISSIONS(), isolated_data_4$value,
        getunits(LUC_EMISSIONS()))
 reset(core)
 run(core)
-out_20 <- fetchvars(core, 1850:2020, vars = CONCENTRATIONS_CO2())
+out_20 <- fetchvars(core, 1850:2019, vars = CONCENTRATIONS_CO2())
 error <- merge(out_20, observations, by = "year")
 error
 rmse(error$value, error$mean)#7.713
@@ -101,3 +102,4 @@ scenario_plot <- ggplot() +
   ggtitle("LUC Emissions to CO2 Concentrations")
 print(scenario_plot)
 ggsave("LUC_emissions_fig.png", scenario_plot, width = 8, height = 5)
+

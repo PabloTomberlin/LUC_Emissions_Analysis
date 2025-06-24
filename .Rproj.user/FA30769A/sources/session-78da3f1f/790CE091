@@ -3,7 +3,7 @@
     "path": "C:/Users/tomb621/OneDrive - PNNL/Desktop/SULI 2025/Github/LUC_Emissions_Analysis/MSE.R",
     "project_path": "MSE.R",
     "type": "r_source",
-    "hash": "0",
+    "hash": "2255220057",
     "contents": "",
     "dirty": false,
     "created": 1750192400413.0,
@@ -12,15 +12,15 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "6,10",
-        "scrollLine": "3"
+        "cursorPosition": "46,0",
+        "scrollLine": "37"
     },
     "folds": "",
-    "lastKnownWriteTime": 1750687678,
+    "lastKnownWriteTime": 1750795280,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1750687678217,
+    "last_content_update": 1750795280113,
     "read_only": false,
     "read_only_alternatives": []
 }
