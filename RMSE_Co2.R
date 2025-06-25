@@ -46,6 +46,7 @@ rmse_list <- lapply(results, function(df){
 
 #need to create table
 df <- as.data.frame(rmse_list)
+df <- signif(df, digits = 4)
 df_table <- as.data.frame(table(df))
 
 results_df <- bind_rows(results, .id = "GCP")
