@@ -44,6 +44,10 @@ rmse_list <- lapply(results, function(df){
   return(df_rmse)
 })
 
+#need to create table
+df <- as.data.frame(rmse_list)
+df_table <- as.data.frame(table(df))
+
 results_df <- bind_rows(results, .id = "GCP")
 results_df <- bind_rows(results_df, out_default)
 results_df
@@ -60,5 +64,10 @@ ggplot() +
   xlab("Year") +
   ylab("Value (Pg C/yr)") +
   labs("GCP Release") +
+  annotate(geom = "table",
+           x = 1850,
+           y = 475,
+           label = list(df_table),
+           size = 3)
   theme(text = element_text(size = 12, family = "mono", face = "bold"))
 
