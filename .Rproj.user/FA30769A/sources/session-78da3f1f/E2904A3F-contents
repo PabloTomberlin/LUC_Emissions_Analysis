@@ -37,9 +37,9 @@ for(gcp_year in all_gcp_years){
          getunits(LUC_EMISSIONS()))
   reset(core)
   run(core)
-  #results[[as.character(gcp_year)]] <- fetchvars(core, 1959:2100, vars = CONCENTRATIONS_CO2())
+  results[[as.character(gcp_year)]] <- fetchvars(core, 1959:2100, vars = CONCENTRATIONS_CO2())
   #compute distance from default
-  message("Value for each year is", fetchvars(core, 1959:2100, vars = CONCENTRATIONS_CO2()))
+  #message("Value for each year is", fetchvars(core, 1959:2100, vars = CONCENTRATIONS_CO2()))
   #difference[gcp_year] <- results$value - out_default$value
   #calculate ppm and % difference at end of century num/real
   #get value at 2100 and put it in
@@ -64,7 +64,22 @@ results_df <- bind_rows(results, .id = "GCP")
 results_df <- bind_rows(results_df, out_default)
 head(results_df)
 
-#maybe?
+#average is baseline
+results_df$value
+results_avg <- results_df %>% group_by(year) %>% summarize(mean_value = mean(value))
+results_avg
+full_df <- left_join(results_df, results_avg, by = "year")
+full_df
+diff <- mutate(full_df, subtract = value - mean_value)
+tail(diff)
+
+ggplot() +
+  geom_line(data = diff,
+            aes(year, subtract, color = GCP)) +
+  geom_vline(xintercept = 2023, linetype = "dashed", color = "black")
+
+
+#default is baseline
 delta <- results_df$value - out_default$value
 delta
 results_df["value"] <- delta
