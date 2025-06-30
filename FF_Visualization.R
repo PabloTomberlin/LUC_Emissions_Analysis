@@ -2,6 +2,7 @@
 data <- read.csv("Fossil_Fuels.csv")
 head(data)
 library(tidyverse)
+#data$GCP <- as.character(GCP)
 
 #It is already in a data frame so I thought I could just plot it 
 ggplot() +
