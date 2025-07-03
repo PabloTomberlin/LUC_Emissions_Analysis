@@ -2,14 +2,15 @@
 data <- read.csv("Fossil_Fuels.csv")
 head(data)
 library(tidyverse)
-#data$GCP <- as.character(GCP)
+#data$GCP[] <- c("2014", "2019", "2024")
 
 #It is already in a data frame so I thought I could just plot it 
 ggplot() +
   geom_line(data = data,
-            aes(year, value, color = GCP)) +
+            aes(year, value, color = GCP),
+            linewidth = 0.8) +
   facet_wrap("GCP", scales = "fixed") +
-  scale_color_gradient(low = "blue", high = "red") +
+  scale_color_gradient()
   ggtitle("Fossil Fuel Emissions") +
   xlab("Year") +
   ylab("Value (Pg C/yr)") +

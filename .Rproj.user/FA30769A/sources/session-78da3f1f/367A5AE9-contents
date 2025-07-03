@@ -40,7 +40,7 @@ head(results_df)
 ggplot() +
   geom_line(data = results_df,
             aes(year, value, color = GCP)) +
-  facet_wrap("variable", scales = "fixed") +
+  facet_wrap("variable", scales = "free") +
   ggtitle("CO2 Concentration") +
   xlab("Year") +
   ylab("Value (Pg C/yr)") +
