@@ -34,7 +34,7 @@ for(gcp_year in all_gcp_years){
 }
 
 #Matilda Analysis
-param_sets <- generate_params(core, draws = 25)
+param_sets <- generate_params(core, draws = 100)
 print(param_sets)
 results <- iterate_model(core, 
                          params = param_sets,
@@ -42,7 +42,7 @@ results <- iterate_model(core,
 head(results)
 ggplot() +
   geom_line(data = results,
-            aes(year, value)) +
+            aes(year, value, group = run_number)) +
   xlab("Year") +
   ylab("Value (ppmv CO2)")
 

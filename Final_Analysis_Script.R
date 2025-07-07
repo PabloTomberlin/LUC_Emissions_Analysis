@@ -4,14 +4,28 @@
 #Read in data and load necessary packages
 data <- read.csv("selected_GCP.csv")
 observations <- read.csv("GML_observations.csv")
-data <- data %>% filter(!(is.na(year)))
 library(tidyverse)
 library(Metrics)
 library(ggsci)
-library(matilda)
+data <- data %>% filter(!(is.na(year)))
 #theme_set(theme_bw())
 
+#Plot LUC emissions data
+LUC_results <- data %>% filter(GCP == c(2007, 2015, 2024))
+tail(LUC_results)
+ggplot() +
+  geom_line(data = LUC_results,
+            aes(year, value, group = GCP),
+            linewidth = 0.8) + 
+  ggtitle("LUC Emissions") +
+  xlab("Year") +
+  ylab("Value (ppmv CO2)") +
+  theme(text = element_text(size = 12, family = "mono", face = "bold")) +
+  scale_color_distiller()
+  scale_color_tron()
+
 #Basic Hector run
+library(hector)
 ini_file <- system.file("input/hector_ssp245.ini", package = "hector")
 core <- newcore(ini_file)
 run(core)
@@ -33,8 +47,30 @@ for(gcp_year in all_gcp_years){
   
 }
 
+#Combined data frame
+results_df <- bind_rows(results, .id = "GCP")
+results_df <- bind_rows(results_df, out_default)
+head(results_df)
+
+#Plot LUC emissions data
+results_df %>%
+  filter(GCP == c(2007, 2015, 2024)) -> LUC_results
+head(LUC_results)
+ggplot() +
+  geom_line(data = comparison_plot,
+            aes(year, value, color = scenario),
+            linewidth = 0.8) + 
+  facet_wrap("variable", scales = "free") +
+  ggtitle("LUC Emissions") +
+  xlab("Year") +
+  ylab("Value (ppmv CO2)") +
+  theme(text = element_text(size = 12, family = "mono", face = "bold")) +
+  scale_color_tron()
 #Matilda Analysis
-param_sets <- generate_params(core, draws = 25)
+library(matilda)
+ini_file <- system.file("input/hector_ssp245.ini", package = "hector")
+core <- newcore(ini_file)
+param_sets <- generate_params(core, draws = 100)
 print(param_sets)
 results <- iterate_model(core, 
                          params = param_sets,
@@ -42,7 +78,7 @@ results <- iterate_model(core,
 head(results)
 ggplot() +
   geom_line(data = results,
-            aes(year, value)) +
+            aes(year, value, group = run_number)) +
   xlab("Year") +
   ylab("Value (ppmv CO2)")
 

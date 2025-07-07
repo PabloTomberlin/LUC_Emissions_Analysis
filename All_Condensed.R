@@ -17,7 +17,7 @@ setvar(core, 1959:2006, LUC_EMISSIONS(), isolated_data$value,
        getunits(LUC_EMISSIONS()))
 reset(core)#why error
 run(core)
-out_07 <- fetchvars(core, 1959:2023, vars = LUC_EMISSIONS())
+out_07 <- fetchvars(core, 1959:2023, vars = CONCENTRATIONS_CO2())
 
 #2015 run, remember to change 5 items
 isolated_data_3 <- data %>% filter(GCP == 2015)
@@ -25,7 +25,7 @@ setvar(core, 1850:2010, LUC_EMISSIONS(), isolated_data_3$value,
        getunits(LUC_EMISSIONS()))
 reset(core)
 run(core)
-out_15 <- fetchvars(core, 1850:2023, vars = LUC_EMISSIONS())
+out_15 <- fetchvars(core, 1850:2023, vars = CONCENTRATIONS_CO2())
 
 
 #2024 run, remember to change 5 items
@@ -34,7 +34,7 @@ setvar(core, 1850:2023, LUC_EMISSIONS(), isolated_data_6$value,
        getunits(LUC_EMISSIONS()))
 reset(core)
 run(core)
-out_24 <- fetchvars(core, 1850:2023, vars = LUC_EMISSIONS())
+out_24 <- fetchvars(core, 1850:2023, vars = CONCENTRATIONS_CO2())
 
 #plot
 out_07[["scenario"]] <- "2007 Data"
@@ -48,6 +48,6 @@ ggplot() +
   facet_wrap("variable", scales = "free") +
   ggtitle("LUC Emissions") +
   xlab("Year") +
-  ylab("Value (Pg C/yr)") +
+  ylab("Value (ppmv CO2)") +
   theme(text = element_text(size = 12, family = "mono", face = "bold")) +
   scale_color_tron()
