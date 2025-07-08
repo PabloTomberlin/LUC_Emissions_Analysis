@@ -3,6 +3,10 @@ data <- read.csv("Fossil_Fuels.csv")
 head(data)
 library(tidyverse)
 #data$GCP[] <- c("2014", "2019", "2024")
+str(data)
+data <- data %>% filter(!(is.na(year)))
+data$GCP <- c("2014", "2019", "2024")
+data$GCP[["2019"]] <- "2019"
 
 #It is already in a data frame so I thought I could just plot it 
 ggplot() +
