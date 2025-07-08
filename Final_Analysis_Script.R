@@ -89,6 +89,29 @@ ggplot() +
   theme(text = element_text(size = 12, family = "mono", face = "bold")) +
   scale_color_tron()
 
+#Uncertainty pt 2
+summary_temp <- results_df %>%
+  filter(variable == "global_tas") %>%
+  filter(year == 2100) %>%
+  summarise(
+    mean_value = mean(value),
+    sd_value = sd(value),
+    spread = max(value) - min(value),
+    CV = sd_value/mean_value,
+    spread_pct = spread/mean_value * 100
+  )
+
+summary_CO2 <- results_df %>%
+  filter(variable == "CO2_concentration") %>%
+  filter(year == 2100) %>%
+  summarise(
+    mean_value = mean(value),
+    sd_value = sd(value),
+    spread = max(value) - min(value),
+    CV = sd_value/mean_value,
+    spread_pct = spread/mean_value * 100
+  )
+
 #Uncertainty Analysis (mean, sd, spread, coefficient of variation, spread %)
 summary_2100 <- results_df %>%
   filter(year == c(2100, 2024)) %>%
@@ -100,25 +123,45 @@ summary_2100 <- results_df %>%
     CV = sd_value/mean_value,
     spread_pct = spread/mean_value * 100
   )
+  
 
-summary_2024 <- results_df %>%
-  filter(year == 2024) %>%
-  group_by(variable)
-
-
-%>%
-  summarise(
-    mean_value = mean(value),
-    sd_value = sd(value),
-    spread = max(value) - min(value),
-    CV = sd_value/mean_value,
-    spread_pct = spread/mean_value * 100
-  )
-
-  filter(variable = "CO2_concentration") %>%
+#Visualization for differences in temperatures
+results_temp <- results_df %>%
+  filter(variable == "global_tas")
+results_temp
+results_avg <- results_temp %>%
   group_by(year) %>%
   summarize(mean_value = mean(value))
+full_df <- left_join(results_temp, results_avg, by = "year")
+full_df
+diff <- mutate(full_df, subtract = value - mean_value)
+tail(diff)
 
+ggplot() +
+  geom_line(data = diff,
+            aes(year, subtract, color = GCP),
+            linewidth = 0.8) +
+  geom_vline(xintercept = 2023, linetype = "dashed", color = "black", linewidth = 0.8) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "yellow", linewidth = 0.8) +
+  xlab("Year") +
+  ylab("Degrees (C)") +
+  ggtitle("Difference from average projected temperature") +
+  theme(text = element_text(size = 12, family = "sans", face = "bold")) +
+  theme_bw()
+
+#Soil and vegetation carbon plots, should go back further in history
+soil_veg <- results_df %>%
+  filter(variable == c("soil_c", "veg_c"))
+ggplot() +
+  geom_line(data = soil_veg,
+          aes(year, value, color = GCP),
+          linewidth = 0.8) +
+  facet_wrap("variable", scales = "free") +
+  ggtitle("Soil and vegetation carbon projections") +
+  xlab("Year") +
+  ylab("Pg C") +
+  theme(text = element_text(size = 12, family = "mono", face = "bold")) +
+  theme_bw()
 
 #Matilda Analysis
 library(matilda)
@@ -144,4 +187,14 @@ results %>% filter(year == 2100) %>%
     spread = max(value) - min(value),
     CV = sd_value/mean_value,
     spread_pct = spread/mean_value * 100
-  ) -> summary_2100
+  ) -> summary_matilda
+
+results %>% filter(year == 2024) %>%
+  group_by(variable) %>%
+  summarise(
+    mean_value = mean(value),
+    sd_value = sd(value),
+    spread = max(value) - min(value),
+    CV = sd_value/mean_value,
+    spread_pct = spread/mean_value * 100
+  ) -> summary_matilda_2
