@@ -89,7 +89,8 @@ for(gcp_year in all_gcp_years){
                                                                            GLOBAL_TAS(),
                                                                            VEG_C(),
                                                                            SOIL_C(),
-                                                                           LUC_EMISSIONS()))
+                                                                           LUC_EMISSIONS(),
+                                                                           OCEAN_C()))
   
 }
 
@@ -99,26 +100,46 @@ results_df <- bind_rows(results_gcp, out_default)
 head(results_df)
 
 #Plot CO2 concentrations projections and global temperatures
-projections <- results_df %>% filter(variable %in% c("CO2_concentration",
-                                                   "global_tas"))
+projections_gcp <- results_df %>%
+  filter(variable == "global_tas") %>%
+  filter(GCP %in% c(2007, 2015, 2024))
+projections_default <-  results_df %>%
+  filter(variable == "global_tas") %>%
+  filter(GCP == "Hector Default")
 ggplot() +
-  geom_line(data = projections,
+  geom_line(data = projections_gcp,
             aes(year, value, color = GCP),
             linewidth = 0.8) +
-  #geom_line(data = projections,
-            #aes(year, value, color = GCP),
+  #facet_wrap("variable", scales = "free") +
+  #geom_line(data = projections_default,
+            #aes(year, value),
+            #color = "pink",
             #linewidth = 0.8) +
-  facet_wrap("variable", scales = "free") +
-  ggtitle("CO2 concentrations and global temperatures projections") +
+  ggtitle("Global temperatures projections") +
   xlab("Year") +
-  ylab("Value (ppmv CO2)") +
+  ylab("Degrees C") +
+  theme_bw() +
+  theme(text = element_text(size = 12, family = "mono", face = "bold")) +
+  scale_color_tron()
+
+LUC_results <- data %>% filter(GCP %in% c(2007, 2015, 2024))
+LUC_results$GCP <- as.factor(LUC_results$GCP)
+ggplot() +
+  geom_line(data = LUC_results,
+            aes(year, value, group = GCP, color = GCP),
+            linewidth = 0.8) +
+  ggtitle("LUC Emissions") +
+  xlab("Year") +
+  ylab("Billion tonnes C (GtC/yr)") +
+  theme_bw() +
   theme(text = element_text(size = 12, family = "mono", face = "bold")) +
   scale_color_tron()
 
 #Uncertainty calculations
-temp_2100 <- results_df %>%
-  filter(variable == "global_tas") %>%
-  filter(year == 2100) %>%
+hector_uncertainty <- results_df %>%
+  filter(year %in% c(2024, 2100)) %>%
+  filter(variable %in% c("global_tas", "CO2_concentration")) %>%
+  group_by(year, variable) %>%
   summarise(
     mean_value = mean(value),
     sd_value = sd(value),
@@ -126,36 +147,6 @@ temp_2100 <- results_df %>%
     spread = max(value) - min(value)
   )
 
-temp_2024 <- results_df %>%
-  filter(variable == "global_tas") %>%
-  filter(year == 2024) %>%
-  summarise(
-    mean_value = mean(value),
-    sd_value = sd(value),
-    margin_error = 1.96 * (sd_value/sqrt(length(unique(results_df$GCP)))),
-    spread = max(value) - min(value)
-  )
-
-CO2_2100 <- results_df %>%
-  filter(variable == "CO2_concentration") %>%
-  filter(year == 2100) %>%
-  summarise(
-    mean_value = mean(value),
-    sd_value = sd(value),
-    margin_error = 1.96 * (sd_value/sqrt(length(unique(results_df$GCP)))),
-    spread = max(value) - min(value)
-  )
-
-CO2_2024 <- results_df %>%
-  filter(variable == "CO2_concentration") %>%
-  filter(year == 2024) %>%
-  summarise(
-    mean_value = mean(value),
-    sd_value = sd(value),
-    margin_error = 1.96 * (sd_value/sqrt(length(unique(results_df$GCP)))),
-    spread = max(value) - min(value)
-  )
-  
 
 #Visualization for differences in temperatures
 results_temp <- results_df %>%
@@ -184,7 +175,8 @@ ggplot() +
 
 #Soil and vegetation carbon plots, should go back further in history
 soil_veg <- results_df %>%
-  filter(variable == c("soil_c", "veg_c"))
+  #filter(variable == c("soil_c", "veg_c"))
+  filter(variable == "ocean_c")
 ggplot() +
   geom_line(data = soil_veg,
           aes(year, value, color = GCP),
@@ -196,42 +188,31 @@ ggplot() +
   theme_bw() +
   theme(text = element_text(size = 12, family = "mono", face = "bold"))
 
-#Matilda Analysis
+#Matilda Analysis and calculating 95% confidence interval for 100 Matilda runs
 library(matilda)
 ini_file <- system.file("input/hector_ssp245.ini", package = "hector")
 core <- newcore(ini_file)
 param_sets <- generate_params(core, draws = 100)
 print(param_sets)
-results <- iterate_model(core, 
+m_results <- iterate_model(core, 
                          params = param_sets,
                          save_vars = c("CO2_concentration"), save_years = 1850:2100)
-head(results)
+head(m_results)
 ggplot() +
-  geom_line(data = results,
+  geom_line(data = m_results,
             aes(year, value, group = run_number)) +
   xlab("Year") +
-  ylab("Value (ppmv CO2)")
+  ylab("Value (ppmv CO2)") +
+  ggtitle("Parametric Uncertainty") +
+  theme_bw() +
+  theme(text = element_text(size = 12, family = "mono", face = "bold"))
 
-results %>% filter(year == 2100) %>%
-  group_by(variable) %>%
+matilda_uncertainty <- m_results %>%
+  filter(year %in% c(2024, 2100)) %>%
+  group_by(year, variable) %>%
   summarise(
     mean_value = mean(value),
     sd_value = sd(value),
     margin_error = 1.96 * (sd_value/10),
-    spread = max(value) - min(value),
-    CV = sd_value/mean_value,
-    spread_pct = spread/mean_value * 100
-  ) -> summary_matilda
-
-results %>% filter(year == 2024) %>%
-  group_by(variable) %>%
-  summarise(
-    mean_value = mean(value),
-    sd_value = sd(value),
-    margin_error = 1.96 * (sd_value/10),
-    spread = max(value) - min(value),
-    CV = sd_value/mean_value,
-    spread_pct = spread/mean_value * 100
-  ) -> summary_matilda_2
-
-#95 confidence interval
+    spread = max(value) - min(value)
+  )
