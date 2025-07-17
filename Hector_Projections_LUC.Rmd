@@ -1,7 +1,16 @@
-#Pablo Tomberlin
-#Modeling Land-Use Change Emissions with Hector
+---
+title: "LUC_Analysis"
+author: "Pablo Tomberlin"
+date: "2025-07-09"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Please download all data to the same location as .rmd file
 
-#Read in data and load necessary packages
+Read in data and load necessary packages
+```{r}
 data <- read.csv("selected_GCP.csv")
 data_FF <- read.csv("Fossil_Fuels.csv")
 observations <- read.csv("GML_observations.csv")
@@ -9,10 +18,11 @@ library(tidyverse)
 library(Metrics)
 library(ggsci)
 data <- data %>% filter(!(is.na(year)))
+```
 
+Fossil fuel visualization of a lengthening time series(2014, 2019, 2024)
+```{r}
 data_FF$GCP <- as.factor(data_FF$GCP)
-
-#Fossil fuel visualization of a lengthening time series(2014, 2019, 2024)
 ggplot() +
   geom_line(data = data_FF,
             aes(year, value, color = GCP),
@@ -24,8 +34,10 @@ ggplot() +
   ylab("Billion tonnes C (GtC/yr)") +
   theme_bw() +
   theme(text = element_text(size = 12, family = "mono", face = "bold"))
+```
 
-#Plot LUC emissions data for 3 key GCP releases (first year, historical extension, and most recent year)
+Plot LUC emissions data for 3 key GCP releases (first year, historical extension, and most recent year)
+```{r}
 LUC_results <- data %>% filter(GCP %in% c(2007, 2015, 2024))
 LUC_results$GCP <- as.factor(LUC_results$GCP)
 ggplot() +
@@ -38,9 +50,10 @@ ggplot() +
   theme_bw() +
   theme(text = element_text(size = 12, family = "mono", face = "bold")) +
   scale_color_tron()
-LUC_results <- data %>% filter(GCP %in% c(2007, 2015, 2024))
+```
 
-#Basic Hector run
+Basic Hector run
+```{r}
 library(hector)
 ini_file <- system.file("input/hector_ssp245.ini", package = "hector")
 core <- newcore(ini_file)
@@ -51,8 +64,10 @@ out_default <- fetchvars(core, 1850:2100, vars = c(CONCENTRATIONS_CO2(),
                                                    SOIL_C(),
                                                    LUC_EMISSIONS()))
 out_default$GCP <- "Hector Default"
+```
 
-#LUC plot with Hector Default as separate line
+LUC plot with Hector Default (SSP 2-45) as separate line
+```{r}
 LUC_default <- out_default %>%
   filter(variable == "luc_emissions")
 ggplot() +
@@ -74,8 +89,10 @@ ggplot() +
   ylab("Billion tonnes C (GtC/yr)") +
   theme_bw() +
   theme(text = element_text(size = 12, family = "mono", face = "bold"))
+```
 
-#Create list and for loop to run all carbon budgets individually
+Create list and for loop to run all carbon budgets individually
+```{r}
 all_gcp_years <- unique(data$GCP)
 results <- list()
 for(gcp_year in all_gcp_years){
@@ -95,12 +112,17 @@ for(gcp_year in all_gcp_years){
   
 }
 
-#Combined data frame
+```
+
+Combined data frame
+```{r}
 results_gcp <- bind_rows(results, .id = "GCP")
 results_df <- bind_rows(results_gcp, out_default)
 head(results_df)
+```
 
-#Plot CO2 concentrations projections and global temperatures
+Plot CO2 concentrations projections and global temperatures
+```{r}
 projections_gcp <- results_df %>%
   filter(variable == "global_tas") %>%
   filter(GCP %in% c(2007, 2015, 2024))
@@ -122,8 +144,10 @@ ggplot() +
   theme_bw() +
   theme(text = element_text(size = 12, family = "mono", face = "bold")) +
   scale_color_tron()
+```
 
-#Uncertainty calculations
+Calculate uncertainty due to LUC emissions revisions
+```{r}
 hector_uncertainty <- results_df %>%
   filter(year %in% c(2024, 2100)) %>%
   filter(variable %in% c("global_tas", "CO2_concentration")) %>%
@@ -134,9 +158,10 @@ hector_uncertainty <- results_df %>%
     margin_error = 1.96 * (sd_value/sqrt(length(unique(results_df$GCP)))),
     spread = max(value) - min(value)
   )
+```
 
-
-#Visualization for differences in temperatures
+Visualization for differences in temperatures (relative graph showing deviation from average temperature projection)
+```{r}
 results_temp <- results_df %>%
   filter(variable == "global_tas")
 results_temp
@@ -159,9 +184,10 @@ ggplot() +
   ggtitle("Difference from average projected temperature") +
   theme_bw() +
   theme(text = element_text(size = 12, family = "sans", face = "bold"))
-  
+```
 
-#Soil and vegetation carbon plots
+Soil and vegetation carbon plots to determine causes of long-lasting LUC effects.
+```{r}
 soil_veg <- results_df %>%
   filter(variable %in% c("soil_c", "veg_c", "ocean_c"))
 ggplot() +
@@ -174,8 +200,10 @@ ggplot() +
   ylab("Pg C") +
   theme_bw() +
   theme(text = element_text(size = 12, family = "mono", face = "bold"))
+```
 
-#Matilda Analysis and calculating 95% confidence interval for 100 Matilda runs
+Matilda Analysis and calculating 95% confidence interval for 100 Matilda runs
+```{r}
 library(matilda)
 ini_file <- system.file("input/hector_ssp245.ini", package = "hector")
 core <- newcore(ini_file)
@@ -203,3 +231,5 @@ matilda_uncertainty <- m_results %>%
     margin_error = 1.96 * (sd_value/10),
     spread = max(value) - min(value)
   )
+```
+
