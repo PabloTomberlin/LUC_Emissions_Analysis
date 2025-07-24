@@ -1,13 +1,21 @@
 ---
-title: "LUC_Analysis"
+title: "LUC Reconstruction Analysis in Hector"
 author: "Pablo Tomberlin"
-date: "2025-07-09"
+date: "2025-07-24"
 output: html_document
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-Please download all data to the same location as .rmd file
+Hello! Here's my land-use change (LUC) emissions analysis project using Hector, a simple earth system model. Follow along to see my work.
+
+Please copy-paste these links into a browser to download all the data, then move them to the same location as your Hector_Projections_LUC.Rmd file
+
+https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2vJjvywy-PRBGbAd7G9L2CmjT9grbajOk4A093SMdEPbjj88UNP0_PbtY2K84bwNJENkwwoVDocVj/pub?gid=1941860215&single=true&output=csv
+
+https://docs.google.com/spreadsheets/d/e/2PACX-1vRjs-hhzm1kJpETetq66_kfY1A2srEvj3Eeo905weC70VpNGP1gIm1JYSyCuh9qeWZru6VisRb1IXRP/pub?gid=117143989&single=true&output=csv
+
+https://docs.google.com/spreadsheets/d/e/2PACX-1vQiHGo6rLp8D9opUDTYOR5uiTzHyY0w92irwIIDbsRYRk4bdON5dDyjyN2uJ76X5QVKuu4jK42o1HGh/pub?gid=128021618&single=true&output=csv
 
 Read in data and load necessary packages
 ```{r}
@@ -17,6 +25,7 @@ observations <- read.csv("GML_observations.csv")
 library(tidyverse)
 library(Metrics)
 library(ggsci)
+library(ggrepel)
 data <- data %>% filter(!(is.na(year)))
 ```
 
@@ -91,7 +100,7 @@ ggplot() +
   theme(text = element_text(size = 12, family = "mono", face = "bold"))
 ```
 
-Create list and for loop to run all carbon budgets individually
+Create list and for loop to run all carbon budgets individually through Hector and extract projections for climate and carbon cycle variables and conditions
 ```{r}
 all_gcp_years <- unique(data$GCP)
 results <- list()
@@ -114,14 +123,14 @@ for(gcp_year in all_gcp_years){
 
 ```
 
-Combined data frame
+Combine all data frames including the default model run into one large data frame
 ```{r}
 results_gcp <- bind_rows(results, .id = "GCP")
 results_df <- bind_rows(results_gcp, out_default)
 head(results_df)
 ```
 
-Plot CO2 concentrations projections and global temperatures
+Plot global temperature projections
 ```{r}
 projections_gcp <- results_df %>%
   filter(variable == "global_tas") %>%
@@ -146,7 +155,7 @@ ggplot() +
   scale_color_tron()
 ```
 
-Calculate uncertainty due to LUC emissions revisions
+Calculate projection uncertainty due to LUC emissions revisions and store in hector_uncertainty
 ```{r}
 hector_uncertainty <- results_df %>%
   filter(year %in% c(2024, 2100)) %>%
@@ -160,16 +169,14 @@ hector_uncertainty <- results_df %>%
   )
 ```
 
-Visualization for differences in temperatures (relative graph showing deviation from average temperature projection)
+Relative graph showing deviation each projection has from the average of all temperature projections
 ```{r}
 results_temp <- results_df %>%
   filter(variable == "global_tas")
-results_temp
 results_avg <- results_temp %>%
   group_by(year) %>%
   summarize(mean_value = mean(value))
 full_df <- left_join(results_temp, results_avg, by = "year")
-full_df
 diff <- mutate(full_df, subtract = value - mean_value)
 tail(diff)
 
@@ -186,7 +193,7 @@ ggplot() +
   theme(text = element_text(size = 12, family = "sans", face = "bold"))
 ```
 
-Soil and vegetation carbon plots to determine causes of long-lasting LUC effects.
+Ocean, soil, and vegetation carbon plots to determine the driver of long-lasting LUC effects
 ```{r}
 soil_veg <- results_df %>%
   filter(variable %in% c("soil_c", "veg_c", "ocean_c"))
@@ -202,7 +209,7 @@ ggplot() +
   theme(text = element_text(size = 12, family = "mono", face = "bold"))
 ```
 
-Matilda Analysis and calculating 95% confidence interval for 100 Matilda runs
+Matilda Analysis (parametric uncertainty) and calculating 95% confidence interval for 100 Matilda runs. This was used to compare how uncertainty of historical LUC emissions and uncertainty of parameters each contributes to overall CO2 projection uncertainty
 ```{r}
 library(matilda)
 ini_file <- system.file("input/hector_ssp245.ini", package = "hector")

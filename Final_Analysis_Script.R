@@ -15,7 +15,7 @@ data_FF$GCP <- as.factor(data_FF$GCP)
 #Fossil fuel visualization of a lengthening time series(2014, 2019, 2024)
 ggplot() +
   geom_line(data = data_FF,
-            aes(year, value, color = GCP),
+            aes(year, value, group = GCP),
             linewidth = 0.8) +
   facet_wrap("GCP", scales = "fixed") +
   scale_color_discrete() +
