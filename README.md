@@ -8,7 +8,7 @@ of past emissions affect uncertainty in projections.
 
 This repository contains all code and data needed to reproduce my results.
 
-If you want to run this code yourself, open the `final_analysis_script.R`
+If you want to run this code yourself, open the `Final_Analysis_Script.R`
 
 To see the code output, go to:
 <link to rpubs>
