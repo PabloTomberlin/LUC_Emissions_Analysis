@@ -7,15 +7,11 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
 Hello! Here's my land-use change (LUC) emissions analysis project using Hector, a simple earth system model. Follow along to see my work.
 
-Please copy-paste these links into a browser to download all the data, then move them to the same location as your Hector_Projections_LUC.Rmd file
-
-https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2vJjvywy-PRBGbAd7G9L2CmjT9grbajOk4A093SMdEPbjj88UNP0_PbtY2K84bwNJENkwwoVDocVj/pub?gid=1941860215&single=true&output=csv
-
-https://docs.google.com/spreadsheets/d/e/2PACX-1vRjs-hhzm1kJpETetq66_kfY1A2srEvj3Eeo905weC70VpNGP1gIm1JYSyCuh9qeWZru6VisRb1IXRP/pub?gid=117143989&single=true&output=csv
-
-https://docs.google.com/spreadsheets/d/e/2PACX-1vQiHGo6rLp8D9opUDTYOR5uiTzHyY0w92irwIIDbsRYRk4bdON5dDyjyN2uJ76X5QVKuu4jK42o1HGh/pub?gid=128021618&single=true&output=csv
+If you want to run this code yourself, you can clone the repostitory:
+https://github.com/PabloTomberlin/LUC_Emissions_Analysis
 
 Read in data and load necessary packages
 ```{r}
@@ -29,7 +25,7 @@ library(ggrepel)
 data <- data %>% filter(!(is.na(year)))
 ```
 
-Fossil fuel visualization of a lengthening time series(2014, 2019, 2024)
+Fossil fuel visualization of a lengthening time series (2014, 2019, 2024)
 ```{r}
 data_FF$GCP <- as.factor(data_FF$GCP)
 ggplot() +
@@ -165,11 +161,13 @@ hector_uncertainty <- results_df %>%
     mean_value = mean(value),
     sd_value = sd(value),
     margin_error = 1.96 * (sd_value/sqrt(length(unique(results_df$GCP)))),
-    spread = max(value) - min(value)
+    spread = max(value) - min(value),
+    .groups = "drop"
   )
+print(hector_uncertainty)
 ```
 
-Relative graph showing deviation each projection has from the average of all temperature projections
+Relative graph showing deviation each projection has from the average of all temperature projections and a black line to indicate where observations end
 ```{r}
 results_temp <- results_df %>%
   filter(variable == "global_tas")
@@ -210,15 +208,17 @@ ggplot() +
 ```
 
 Matilda Analysis (parametric uncertainty) and calculating 95% confidence interval for 100 Matilda runs. This was used to compare how uncertainty of historical LUC emissions and uncertainty of parameters each contributes to overall CO2 projection uncertainty
-```{r}
+```{r, message=FALSE}
 library(matilda)
 ini_file <- system.file("input/hector_ssp245.ini", package = "hector")
 core <- newcore(ini_file)
 param_sets <- generate_params(core, draws = 100)
-print(param_sets)
 m_results <- iterate_model(core, 
                          params = param_sets,
                          save_vars = c("CO2_concentration"), save_years = 1850:2100)
+```
+
+```{r}
 head(m_results)
 ggplot() +
   geom_line(data = m_results,
@@ -236,7 +236,15 @@ matilda_uncertainty <- m_results %>%
     mean_value = mean(value),
     sd_value = sd(value),
     margin_error = 1.96 * (sd_value/10),
-    spread = max(value) - min(value)
+    spread = max(value) - min(value),
+    .groups = "drop"
   )
+print(matilda_uncertainty)
+```
+
+## Reproducibility
+
+```{r}
+sessionInfo()
 ```
 
